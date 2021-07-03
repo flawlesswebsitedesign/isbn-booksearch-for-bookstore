@@ -1,0 +1,387 @@
+<?php
+
+use Inc\Init;
+
+if ( ! defined('ABSPATH'))
+{
+    die;
+}
+
+//if ( file_exists( dirname(__FILE__) . 'vendor/autoload.php'))
+
+//require_once dirname(__FILE__) . '/vendor/autoload.php';
+
+
+
+define( 'PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
+define( 'PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+
+
+//if ( class_exists( 'Inc\\Init'))
+
+
+
+function run(){
+    require_once (PLUGIN_PATH . 'Inc/Init.php');
+    Init::register_services();
+}
+
+run();
+
+
+
+function isbnbooksearch_shortcode($atts) {
+
+    // Attributes
+    $atts = shortcode_atts(
+        array(
+            'title' => '\"Title\"',
+            'author' => '\"Author\"',
+            'isbn' => '\"ISBN\"',
+        ),
+        $atts
+    );
+
+    ob_start(); ?>
+
+    <!--Insert your mail provider's HTML and JS form code here-->
+    <html>
+        <head>
+            <style>
+            input.searchTerm{
+                display: flex;
+            	border-style: solid;
+                border-radius: 10px 0px 0px 10px;
+                height:40px;
+                border-color:#fff;
+                margin-left: -1%;
+                margin-top: 1%;
+            }
+
+            button.searchButton{
+            	border-style: solid;
+                border-radius: 0px 10px 10px 0px;
+                width: 10%;
+                background-color:#000;
+                border-color:#fff;
+                margin-right: 10%;
+                margin-top: 1%;
+                color: #ff7e02;
+            }
+
+            .dropdown-content td, .dropdown-content th {
+            text-align: center;
+            padding: 10px;
+            width:80%;
+            z-index: inherit;
+            }
+
+            .dropdown-content tr{
+            z-index: 2147483600;
+            }
+
+            .dropdown-content tr:nth-child(even) {
+            	background-color: #ff7e02;
+                color: #fff;
+                z-index: inherit;
+            }
+
+            .dropdown-content img {
+                width: 100%;
+                height: auto;
+            }
+
+            .pagination{
+                display: flex;
+            }
+
+            #ResultTable{
+                visibility:hidden;
+                border-style: solid;
+                border-radius: 0px 0px 10px 10px;
+                table-layout: auto;
+                width: 100%;
+                height:auto;
+                border-color:#fff;
+                border-width: 0px;
+                background-color: #fff;
+                position: relative;
+                z-index: 2147483600;
+                padding-right: 0px;
+            }
+
+            #img1, #img2, #img3, #img4, #img5, #img6{
+                width: 75px;
+                height: auto;
+            }
+
+            .ISBN{
+                display:none;
+            }
+
+            .footerRow{
+            	display: in-line;
+            }
+
+            p .rImage {
+                width: 100%;
+                height: auto;
+            }
+
+            .dropdown-content td:nth-child(1) {
+                width: 15%;
+                height: 50%;
+            }
+
+            // Fixing width of second
+            // column of each row
+            .dropdown-content td:nth-child(2) {
+                width: 40%;
+                height: 50%;
+            }
+            .dropdown-content td.addtocartbuttons{
+              min-width:140px;
+                width: 45%;
+                height: 50%;
+            }
+
+            .dropdown-content td button{
+                background-color: #ff7e02;
+                width: 100%;
+                max-width:140px;
+                height: auto;
+                padding:10px 5px;
+            }
+            .rowPrice{
+                width:100%;
+                height:auto;
+                border:0px;
+                border-radius:0px;
+                border-color:#ff7e02;
+                margin-right:0%;
+                background-color: #ff7e02;
+                color: #fff;
+            }
+
+            .dropbtn {
+                background-color: #3498DB;
+                color: white;
+                padding: 16px;
+                font-size: 16px;
+                border: none;
+                cursor: pointer;
+                }
+
+                .dropbtn:hover, .dropbtn:focus {
+                background-color: #2980B9;
+                }
+
+                .dropdown {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    position: relative;
+                    z-index:99999999;
+                }
+
+                .dropdown-content {
+                display: none;
+                position: absolute;
+                background-color: #fff;
+                width: 50%;
+                overflow: auto;
+                box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4);
+                margin-left:0px;
+                z-index: 2147483600;
+                }
+
+                .dropdown-content a {
+                color: black;
+                padding: 0px 0px;
+                text-decoration: none;
+                display: block;
+                z-index:99999999;
+                }
+
+                .dropdown a:hover {background-color: #ddd;}
+
+                .show {
+                    display: flex;
+                    position: absolute;
+                    justify-content: center;
+                    align-items: center;
+                    margin-left:0px;
+                    z-index:99999999;
+                }
+
+                .search .wrap {
+
+                }
+                .resultbuttons{
+                  display:inline-block!important;
+                  background-color: #ff7e02;
+                  color: #000;
+                  padding: 10px!important;
+                  transition: all 0.5s;
+                  font-size: 16px;
+                  font-weight: 600;
+                  text-align: center;
+                  border: none;
+                  border-radius: 0;
+                }
+
+
+            </style>
+            <script>
+
+                function myFunction() {
+
+                    var table = document.getElementById("ResultTable");
+                    var dropdowns = document.getElementsByClassName("dropdown-content");
+                    var i;
+                    var openDropdown;
+                    for (i = 0; i < dropdowns.length; i++) {
+                       openDropdown = dropdowns[i];
+                    }
+                    var x = document.getElementById("myInput").value;
+                    if(x === ""){
+                        document.getElementById("myDropdown").style.display = "none";
+                        document.getElementById("ResultTable").style.visibility = "hidden";
+                        openDropdown.classList.remove('show');
+                    }
+                    else{
+                        document.getElementById("myDropdown").style.display = "block";
+                        document.getElementById("ResultTable").style.visibility = "visible";
+                        showHint(x);
+                        openDropdown.classList.add('show');
+                    }
+
+
+                }
+                function showHint(str) {
+                    var xhttp;
+                    var resultString;
+                    var resultArray;
+                    if (str.length == 0) {
+                        document.getElementById("txtHint").innerHTML = "";
+                        return;
+                    }
+                    xhttp = new XMLHttpRequest();
+                    xhttp.onreadystatechange = function() {
+                        if (this.readyState == 4 && this.status == 200) {
+                            resultString = this.responseText;
+                            if(resultString==""){
+                              var htmlData = '';
+                              resultString = JSON.parse(resultString);
+                              htmlData += '<h2>No books</h2>';
+                              document.getElementById("ResultTable").innerHTML = htmlData;
+                            }
+                            else{
+                              //console.log(resultString);
+                              var htmlData = '';
+                              resultString = JSON.parse(resultString);
+
+                            for(key in resultString){
+                              if(resultString[key]['FORMAT'] == 'BB'){
+                                $bookFormat = 'Hardcover';
+                              }
+                              else if(resultString[key]['FORMAT'] == 'BC'){
+                                $bookFormat = 'Paperback';
+                              }
+                              else if(resultString[key]['FORMAT'] == 'BH'){
+                                $bookFormat = 'Board Book';
+                              }
+                              var action = "https://keybookstore.com/new/product/book/?title="+resultString[key]['TITLE']+"&price="+resultString[key]['PRICE']+"&isbn="+resultString[key]['ISBN'];
+                              htmlData += '                               <tr height="auto">                                   <td colspan=1 width="20%">                                       <div>                                       	<p class="rImage" id="img'+key+'" ><img src="'+resultString[key]['THUMB']+'"></p>                                       </div>                                   </td>                                   <td colspan=2 width="80%">                                       <div class="columnContent">                                           <div class="title">                                               <p id="title'+key+'">'+resultString[key]['TITLE']+'</p>                                           </div>                                           <div class="ISBN">                                               <input type="text" name="isbn_number" id="isbn'+key+'" value="'+resultString[key]['ISBN']+'">                                           </div>                  <div class="Price">                                               <p id="price'+key+'">'+$bookFormat+'</p>                                           </div>                         <div class="Price">                                               <p id="price'+key+'">'+resultString[key]['PRICE']+'</p>                                           </div>    <form role="select" method="post" id="selection'+key+'" action = "'+action+'">                                       <button class="rowPrice twar" type="submit" name="Submit" id="select" value="Select">                                             <div><i class="fa fa-book" aria-hidden="true"></i> Add To Cart</div>   </button>   <input type="hidden" name="isbn_number" id="isbn'+key+'" value="'+resultString[key]['ISBN']+'">     </form>                                    </div>                                   </td>                                </tr>                              ';
+
+                            //  if(resultString[key]['ISBN'] != null){
+                                //document.getElementById("isbn"+key).value = resultString[key]['ISBN'];
+                            //  document.getElementById("img"+(key+1)).innerHTML = "<img src=\""+resultString[key]['THUMB']+"\">";
+                              //document.getElementById("title"+(key+1)).innerHTML = resultString[key]['TITLE'];
+                            //  document.getElementById('selection'+(key+1)).action = "https://keybookstore.com/new/product/book/?title="+resultString[key]['TITLE']+"&price="+resultString[key]['PRICE']+"&isbn="+resultString[key]['ISBN'];
+                            //  document.getElementById("price"+(key+1)).innerHTML = "Price: $"+resultString[key]['PRICE'];
+                            //}
+                          }
+                          document.getElementById("ResultTable").innerHTML = htmlData;
+                            //resultArray = resultString.split('$@#');
+                            /*
+                            document.getElementById("isbn1").value = resultArray[0];
+                            document.getElementById("img1").innerHTML = "<img src=\""+resultArray[1]+"\">";
+                            document.getElementById("title1").innerHTML = resultArray[2];
+                            document.getElementById('selection1').action = "https://keybookstore.com/new/product/book/?title="+resultArray[2]+"&price="+resultArray[3]+"&isbn="+resultArray[0];
+                            document.getElementById("price1").innerHTML = "Price: $"+resultArray[3];
+                            document.getElementById("isbn2").value = resultArray[4];
+                            document.getElementById("img2").innerHTML = "<img src=\""+resultArray[5]+"\">";
+                            document.getElementById("title2").innerHTML = resultArray[6];
+                            document.getElementById("price2").innerHTML = "Price: $"+resultArray[7];
+                            document.getElementById('selection2').action = "https://keybookstore.com/new/product/book/?title="+resultArray[6]+"&price="+resultArray[7]+"&isbn="+resultArray[4];
+                            document.getElementById("isbn3").value = resultArray[8];
+                            document.getElementById("img3").innerHTML = "<img src=\""+resultArray[9]+"\">";
+                            document.getElementById("title3").innerHTML = resultArray[10];
+                            document.getElementById("price3").innerHTML = "Price: $"+resultArray[11];
+                            document.getElementById('selection3').action = "https://keybookstore.com/new/product/book/?title="+resultArray[10]+"&price="+resultArray[11]+"&isbn="+resultArray[8];
+                            document.getElementById("isbn4").value = resultArray[12];
+                            document.getElementById("img4").innerHTML = "<img src=\""+resultArray[13]+"\">";
+                            document.getElementById("title4").innerHTML = resultArray[14];
+                            document.getElementById("price4").innerHTML = "Price: $"+resultArray[15];
+                            document.getElementById('selection4').action = "https://keybookstore.com/new/product/book/?title="+resultArray[14]+"&price="+resultArray[15]+"&isbn="+resultArray[12];
+                            document.getElementById("isbn5").value = resultArray[16];
+                            document.getElementById("img5").innerHTML = "<img src=\""+resultArray[17]+"\">";
+                            document.getElementById("title5").innerHTML = resultArray[18];
+                            document.getElementById("price5").innerHTML = "Price: $"+resultArray[19];
+                            document.getElementById('selection5').action = "https://keybookstore.com/new/product/book/?title="+resultArray[18]+"&price="+resultArray[19]+"&isbn="+resultArray[16];
+*/
+                            }
+
+                        }
+                    };
+                    xhttp.open("GET", "https://keybookstore.com/new/isbn-prevserch.php?q="+str, true);
+                    xhttp.send();
+                }
+            </script>
+        </head>
+        <body>
+        <div class="dropdown">
+
+            <form role="search" class="searchform" method="post" id="search" action = "<?php echo get_home_url(); ?>/results" >
+
+                <div class="wrap" >
+                    <div class="search" style="display:flex; align-item:center; justify-item:center;">
+                        <input type="text" class="searchTerm" name="search_term" id="myInput" results="4" placeholder="Express Checkout , Search and Buy!!" style="font-size: 1em" oninput="myFunction()">
+                        <input type="hidden" class="searchTerm" name="pageNum" id="myInput" results="4" value="1">
+                        <button type="submit" class="searchButton" name="Submit" id="searchsubmit" value="Search">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        <div id="myDropdown" class="dropdown-content">
+
+
+            <table id="ResultTable">
+
+            </table>
+            <table>
+              <tr>
+                  <td colspan=4 class="footerRow">
+                        <h2 style="font-size:16px;">To view more results, click the search button!</h2>
+                        <h2>
+                          <a href="https://libro.fm/keybookstore" class="resultbuttons">Buy Audiobooks</a> <a href="https://keybookstore.mymustreads.com/" class="resultbuttons">Buy Ebooks</a>
+                        </h2>
+                  </td>
+              </tr>
+            </table>
+	    </div>
+        </body>
+    </html>
+
+
+
+    <?php
+        return ob_get_clean();
+}
+
+add_shortcode( 'isbnbooksearch', 'isbnbooksearch_shortcode' );
